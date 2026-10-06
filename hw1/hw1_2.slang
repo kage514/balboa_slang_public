@@ -18,6 +18,14 @@ void compute_main(uint2 tid : SV_DispatchThreadID,
         return;
     }
 
-    image[tid] = float4(1.0);
-    // TODO: your code here
+    image[tid] = float4(0.5, 0.5, 0.5, 1.0);
+
+    float2 pixel_center = float2(tid.xy) + 0.5;
+    pixel_center.y = height - pixel_center.y;
+
+    for(int i = 0; i < num_polyline; i++)
+    {
+        int next_i = (i + 1) % num_polyline;
+        
+    }
 }
