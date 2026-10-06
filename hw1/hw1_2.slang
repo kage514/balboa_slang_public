@@ -23,9 +23,17 @@ void compute_main(uint2 tid : SV_DispatchThreadID,
     float2 pixel_center = float2(tid.xy) + 0.5;
     pixel_center.y = height - pixel_center.y;
 
-    for(int i = 0; i < num_polyline; i++)
+    if(is_closed && use_fill_color)
     {
-        int next_i = (i + 1) % num_polyline;
-        
+        for(int i = 0; i < num_polyline; i++)
+        {
+            int next_i = (i + 1) % num_polyline;
+            float t = (pixel_center.y - polyline[i].y) / (polyline[i + 1].y - polyline[i].y);
+            float s = polyline[i].x + t * (polyline[i + 1].x - polyline[i].x) - tid.x;
+            if(s >= 0 && t >= 0 && t <= 1.0)
+            {
+                image[tid] = float4(fill_color, 1.0);
+            }
+        }
     }
 }
