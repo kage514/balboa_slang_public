@@ -18,7 +18,7 @@ void compute_main(uint2 tid : SV_DispatchThreadID,
     float2 offset = pixel_center - center;
 
     if(dot(offset, offset) < radius * radius)
-        {
-            image[tid] = float4(color, 1.0);
-        }
+    {
+        image[tid] = float4(color, 1.0);
+    }
 }

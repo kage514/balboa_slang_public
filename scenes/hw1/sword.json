@@ -1,0 +1,122 @@
+{
+  "resolution": [800, 450],
+  "duration": 1.0,
+  "background": [0.12, 0.14, 0.19],
+  "samples_per_axis": 4,
+  "objects": [
+    {
+      "type": "circle",
+      "center": [275, 225],
+      "radius": 8,
+      "fill_rgba": [0.75, 0.12, 0.18, 1.0]
+    },
+    {
+      "type": "polyline",
+      "points": [154, 205, 172, 245],
+      "stroke_rgba": [0.72, 0.52, 0.28, 1.0],
+      "stroke_width": 4
+    },
+    {
+      "type": "polyline",
+      "points": [184, 205, 202, 245],
+      "stroke_rgba": [0.72, 0.52, 0.28, 1.0],
+      "stroke_width": 4
+    },
+    {
+      "type": "polyline",
+      "points": [214, 205, 232, 245],
+      "stroke_rgba": [0.72, 0.52, 0.28, 1.0],
+      "stroke_width": 4
+    },
+    {
+      "type": "circle",
+      "center": [120, 225],
+      "radius": 9,
+      "fill_rgba": [0.96, 0.82, 0.42, 1.0]
+    },
+    {
+      "type": "polyline",
+      "points": [
+        135, 205,
+        259, 205,
+        259, 245,
+        135, 245
+      ],
+      "closed": true,
+      "fill_rgba": [0.40, 0.24, 0.12, 1.0],
+      "stroke_rgba": [0.18, 0.10, 0.05, 1.0],
+      "stroke_width": 3
+    },
+    {
+      "type": "circle",
+      "center": [122, 225],
+      "radius": 21,
+      "fill_rgba": [0.70, 0.52, 0.20, 1.0],
+      "stroke_rgba": [0.32, 0.20, 0.08, 1.0],
+      "stroke_width": 3
+    },
+    {
+      "type": "polyline",
+      "points": [
+        267, 149,
+        281, 149,
+        289, 162,
+        281, 209,
+        281, 241,
+        289, 288,
+        281, 301,
+        267, 301,
+        259, 288,
+        268, 241,
+        268, 209,
+        259, 162
+      ],
+      "closed": true,
+      "fill_rgba": [0.86, 0.69, 0.26, 1.0],
+      "stroke_rgba": [0.40, 0.27, 0.08, 1.0],
+      "stroke_width": 3
+    },
+    {
+      "type": "polyline",
+      "points": [306, 225, 679, 225],
+      "stroke_rgba": [0.97, 0.98, 1.0, 1.0],
+      "stroke_width": 2
+    },
+    {
+      "type": "polyline",
+      "points": [
+        289, 225,
+        304, 190,
+        562, 190,
+        684, 225
+      ],
+      "closed": true,
+      "fill_rgba": [0.86, 0.89, 0.94, 1.0]
+    },
+    {
+      "type": "polyline",
+      "points": [
+        289, 225,
+        684, 225,
+        562, 260,
+        304, 260
+      ],
+      "closed": true,
+      "fill_rgba": [0.55, 0.61, 0.70, 1.0]
+    },
+    {
+      "type": "polyline",
+      "points": [
+        289, 190,
+        562, 190,
+        684, 225,
+        562, 260,
+        289, 260
+      ],
+      "closed": true,
+      "fill_rgba": [0.70, 0.75, 0.82, 1.0],
+      "stroke_rgba": [0.30, 0.35, 0.43, 1.0],
+      "stroke_width": 2
+    }
+  ]
+}

@@ -190,14 +190,76 @@ def compose_transformation(transforms):
     F = np.eye(3, dtype=np.float32)
 
     for transform in transforms:
-        pass
-        # TODO: your code here
-
+        if "translate" in transform:
+            tx, ty = transform['translate']
+            T = np.array([
+                [1, 0, tx],
+                [0, 1, ty],
+                [0, 0, 1]
+            ], dtype=np.float32)
+        elif "rotate" in transform:
+            angle = np.deg2rad(transform['rotate'][0])
+            T = np.array([
+                [np.cos(angle), -np.sin(angle), 0],
+                [np.sin(angle), np.cos(angle), 0],
+                [0, 0, 1]
+            ], dtype=np.float32)
+        elif "scale" in transform:
+            sx, sy = transform['scale']
+            T = np.array([
+                [sx, 0, 0],
+                [0, sy, 0],
+                [0, 0, 1]
+            ], dtype=np.float32)
+        elif "shear_x" in transform:
+            shx = transform['shear_x'][0]
+            T = np.array([
+                [1, shx, 0],
+                [0, 1, 0],
+                [0, 0, 1]
+            ], dtype=np.float32)
+        elif "shear_y" in transform:
+            shy = transform['shear_y'][0]
+            T = np.array([
+                [1, 0, 0],
+                [shy, 1, 0],
+                [0, 0, 1]
+            ], dtype=np.float32)
+        F = T @ F
     return F
 
 def interpolate_transformation(transform_keyframes, t):
-    # TODO: your code here
+    if t <= transform_keyframes[0]['time']:
+        return transform_keyframes[0]['transform']
 
+    if t >= transform_keyframes[-1]['time']:
+        return transform_keyframes[-1]['transform']
+
+    for i in range(len(transform_keyframes) - 1):
+        kf0 = transform_keyframes[i];
+        kf1 = transform_keyframes[i + 1]
+
+        t0 = kf0['time']
+        t1 = kf1['time']
+        if t0 <= t <= t1:
+            result = []
+            w = (t - t0) / (t1 - t0)
+
+            for trans0, trans1 in zip(kf0["transform"], kf1["transform"]):
+                trans_kind = list(trans0.keys())[0]
+
+                params0 = trans0[trans_kind]
+                params1 = trans1[trans_kind]
+
+                interpolated = []
+
+                for a, b in zip(params0, params1):
+                    interpolated.append((1 - w) * a + w * b)
+
+                result.append({trans_kind: interpolated})
+
+            return result
+                
     # Should never happen?
     assert False
 
