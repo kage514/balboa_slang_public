@@ -22,12 +22,32 @@ struct VertexOutput {
 [shader("vertex")]
 VertexOutput vertex_main(uint vid : SV_VertexID) {
     VertexOutput output;
-    // HW 2.7 TODO: implement
+    output.position = mul(MVP, float4(vertices[vid], 1.0));
+    output.world_position = mul(model_matrix, float4(vertices[vid], 1.0)).xyz;
+    output.world_normal = mul(normal_matrix, vertex_normals[vid]);
+    output.uv = vertex_uvs[vid];
     return output;
 }
 
 [shader("fragment")]
 float4 fragment_main(VertexOutput input) : SV_Target {
-    // HW 2.7 TODO: implement
-    return float4(1.0);
+    float3 n = normalize(input.world_normal);
+    float3 l = normalize(light_dir);
+    float3 v = normalize(camera_position - input.world_position);
+
+    float3 Kd = Kd_texture.Sample(Kd_sampler, input.uv).rgb;
+
+    float3 color_ambient = 0.2 * Kd;
+    
+    float3 color_diffuse = Kd * light_color * max(0, dot(n, l));
+
+    float3 color_specular = float3(0.0);
+    if (dot(n, l) > 0.0)
+    {
+        float3 r = reflect(-l, n);
+        float specular_factor = pow(max(0.0, dot(r, v)), exponent);
+        color_specular = Ks * light_color * specular_factor;
+    }
+
+    return float4(color_ambient + color_diffuse + color_specular, 1.0);
 }
