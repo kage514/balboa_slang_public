@@ -307,7 +307,7 @@ def interpolate_transformation(transform_keyframes, t):
         t0 = frame0["time"]
         t1 = frame1["time"]
 
-        if t0 <= t <= t1:
+        if t0 <= t < t1:
             weight = (t - t0) / (t1 - t0)
 
             transforms0 = frame0["transform"]
