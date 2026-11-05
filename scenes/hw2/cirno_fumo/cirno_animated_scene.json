@@ -1,0 +1,85 @@
+{
+  "duration": 8.0,
+  "camera": {
+    "resolution": [
+      900,
+      900
+    ],
+    "s": 0.43,
+    "z_near": 0.01,
+    "transform": [
+      {
+        "lookat": {
+          "position": [
+            -3.1,
+            0.35,
+            -1.6
+          ],
+          "target": [
+            0,
+            -0.02,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    ]
+  },
+  "background": [
+    0.12,
+    0.18,
+    0.26
+  ],
+  "light": {
+    "light_dir": [
+      -1.0,
+      1.1,
+      -1.0
+    ],
+    "light_color": [
+      1.15,
+      1.15,
+      1.15
+    ]
+  },
+  "objects": [
+    {
+      "filename": "cirno_mesh.json",
+      "material": {
+        "texture": "cirno_texture.png",
+        "Ks": [
+          0.025,
+          0.025,
+          0.025
+        ],
+        "exponent": 24.0
+      },
+      "transform_keyframes": [
+        {
+          "time": 0,
+          "transform": [
+            {
+              "rotate_y": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "time": 8,
+          "transform": [
+            {
+              "rotate_y": [
+                -360
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
