@@ -43,16 +43,131 @@ def compose_transformations(transformations):
     """
         Given a list of transformations, compose them into a matrix.
     """
-    # HW 3.4: copy paste your HW2.3 code here
-
     F = np.eye(4, dtype=np.float32)
+
+    for transform in transformations:
+        if 'scale' in transform:
+            s = transform['scale']
+            S = np.eye(4, dtype=np.float32)
+            S[0, 0] = s[0]
+            S[1, 1] = s[1]
+            S[2, 2] = s[2]
+            F = S @ F;
+        elif 'translate' in transform:
+            t = transform['translate']
+            T = np.eye(4, dtype=np.float32)
+            T[0, 3] = t[0]
+            T[1, 3] = t[1]
+            T[2, 3] = t[2]
+            F = T @ F;
+        elif 'rotate_x' in transform:
+            theta = math.radians(transform['rotate_x'][0])
+            R_x = np.eye(4, dtype=np.float32)
+            R_x[1, 1] = math.cos(theta)
+            R_x[1, 2] = -math.sin(theta)
+            R_x[2, 1] = math.sin(theta)
+            R_x[2, 2] = math.cos(theta)
+            F = R_x @ F;
+        elif 'rotate_y' in transform:
+            theta = math.radians(transform['rotate_y'][0])
+            R_y = np.eye(4, dtype=np.float32)
+            R_y[0, 0] = math.cos(theta)
+            R_y[0, 2] = math.sin(theta)
+            R_y[2, 0] = -math.sin(theta)
+            R_y[2, 2] = math.cos(theta)
+            F = R_y @ F
+        elif 'rotate_z' in transform:
+            theta = math.radians(transform['rotate_z'][0])
+            R_z = np.eye(4, dtype=np.float32)
+            R_z[0, 0] = math.cos(theta)
+            R_z[0, 1] = -math.sin(theta)
+            R_z[1, 0] = math.sin(theta)
+            R_z[1, 1] = math.cos(theta)
+            F = R_z @ F
+        elif 'lookat' in transform:
+            pos = transform['lookat']['position'];
+            target = transform['lookat']['target'];
+            up = transform['lookat']['up'];
+
+            def normalize(v):
+                return v / np.linalg.norm(v)
+            d = normalize(np.array(target) - np.array(pos))
+            r = normalize(np.cross(d, np.array(up)))
+            u_prime = np.cross(r, d)
+
+            L = np.array([
+                [r[0], u_prime[0], -d[0], pos[0]],
+                [r[1], u_prime[1], -d[1], pos[1]],
+                [r[2], u_prime[2], -d[2], pos[2]],
+                [0,    0,          0,     1]
+            ], dtype=np.float32)
+
+            F = L @ F
+
     return F
 
 def interpolate_transformation(transform_keyframes, t):
-    # HW 3.4: copy your HW2.4 code here.
-
-    # create a new transform from the two keyframes
     interp_transforms = []
+
+    if len(transform_keyframes) == 0:
+        return interp_transforms
+
+    if t <= transform_keyframes[0]["time"]:
+        return transform_keyframes[0]["transform"]
+
+    if t >= transform_keyframes[-1]["time"]:
+        return transform_keyframes[-1]["transform"]
+
+    for i in range(len(transform_keyframes) - 1):
+        frame0 = transform_keyframes[i]
+        frame1 = transform_keyframes[i + 1]
+
+        t0 = frame0["time"]
+        t1 = frame1["time"]
+
+        if t0 <= t < t1:
+            weight = (t - t0) / (t1 - t0)
+
+            transforms0 = frame0["transform"]
+            transforms1 = frame1["transform"]
+
+            for j in range(len(transforms0)):
+                transform0 = transforms0[j]
+                transform1 = transforms1[j]
+
+                for name in transform0:
+                    if name == "lookat":
+                        parameters = {}
+
+                        for parameter_name in ["position", "target", "up"]:
+                            values0 = transform0[name][parameter_name]
+                            values1 = transform1[name][parameter_name]
+
+                            values = []
+                            for k in range(3):
+                                value = (
+                                    (1 - weight) * values0[k]
+                                    + weight * values1[k]
+                                )
+                                values.append(value)
+
+                            parameters[parameter_name] = values
+
+                        interp_transforms.append({"lookat": parameters})
+
+                    else:
+                        values0 = transform0[name]
+                        values1 = transform1[name]
+
+                        values = []
+                        for k in range(len(values0)):
+                            value = (
+                                (1 - weight) * values0[k]
+                                + weight * values1[k]
+                            )
+                            values.append(value)
+
+                        interp_transforms.append({name: values})
     return interp_transforms
 
 def get_transformation(obj, t):
