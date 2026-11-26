@@ -85,5 +85,118 @@ void detect_collision(uint tid : SV_DispatchThreadID,
     if (tid >= num_particles) {
         return;
     }
-    // TODO: HW 4.6. Your code below.
+    
+    float4 contact_plane = float4(0.0, 0.0, 0.0, 0.0);
+    if (inv_masses[tid] == 0.0)
+    {
+        contact_planes[tid] = contact_plane;
+        return;
+    }
+
+    float3 position = positions[tid];
+    float min_distance = contact_margin + collision_distance;
+
+    for (uint i = 0; i < num_planes; ++i)
+    {
+        float4 plane = planes[i];
+        float distance = dot(plane.xyz, position) - plane.w;
+        if (distance < min_distance)
+        {
+            min_distance = distance;
+            contact_plane = float4(plane.xyz, plane.w + collision_distance);
+        }
+    }
+
+    for (uint i = 0; i < num_spheres; ++i)
+    {
+        float4 sphere = spheres[i];
+        float3 delta = position - sphere.xyz;
+        float center_distance = length(delta);
+        float distance = center_distance - sphere.w;
+        if (distance < min_distance)
+        {
+            min_distance = distance;
+
+            float3 normal = float3(0.0, 1.0, 0.0);
+            if (center_distance > 0.0)
+            {
+                normal = delta / center_distance;
+            }
+
+            float d = dot(normal, sphere.xyz) + sphere.w;
+            contact_plane = float4(normal, d + collision_distance);
+        }
+    }
+
+    // Find the closest mesh triangle by unsigned distance.
+    float mesh_min_distance = contact_margin + collision_distance;
+    const uint invalid_triangle = 0xffffffffu;
+    uint closest_triangle = invalid_triangle;
+    ClosestPoint closest = { float3(0.0, 0.0, 0.0), float3(0.0, 0.0, 0.0) };
+    float3 closest_face_normal = float3(0.0, 0.0, 0.0);
+
+    int node_index = 0;
+    while (node_index >= 0 && uint(node_index) < num_bvh_nodes)
+    {
+        BVHNode node = bvh_nodes[node_index];
+        float box_distance = point_aabb_distance(position, node.bbox_min, node.bbox_max);
+
+        if (box_distance > mesh_min_distance)
+        {
+            node_index = node.next_index;
+            continue;
+        }
+
+        if (!node.is_leaf)
+        {
+            ++node_index;
+            continue;
+        }
+
+        for (uint i = node.triangle_begin; i < node.triangle_end; ++i)
+        {
+            uint3 triangle = mesh_triangles[i];
+            float3 p0 = mesh_vertices[triangle.x];
+            float3 p1 = mesh_vertices[triangle.y];
+            float3 p2 = mesh_vertices[triangle.z];
+
+            float3 face_normal = cross(p1 - p0, p2 - p0);
+
+            ClosestPoint candidate = closest_point_triangle(position, p0, p1, p2);
+            float distance = length(position - candidate.position);
+            if (distance < mesh_min_distance)
+            {
+                mesh_min_distance = distance;
+                closest_triangle = i;
+                closest = candidate;
+                closest_face_normal = face_normal;
+            }
+        }
+
+        node_index = node.next_index;
+    }
+
+    if (closest_triangle != invalid_triangle)
+    {
+        uint3 triangle = mesh_triangles[closest_triangle];
+        float3 vertex_normal =
+            closest.bary.x * mesh_vertex_normals[triangle.x]
+          + closest.bary.y * mesh_vertex_normals[triangle.y]
+          + closest.bary.z * mesh_vertex_normals[triangle.z];
+
+        float3 normal = normalize(closest_face_normal);
+        if (dot(normal, vertex_normal) < 0.0)
+        {
+            normal = -normal;
+        }
+
+        float d = dot(normal, closest.position);
+        float distance = dot(normal, position) - d;
+        if (distance < min_distance)
+        {
+            contact_plane = float4(normal, d + collision_distance);
+        }
+    }
+
+    contact_planes[tid] = contact_plane;
 }

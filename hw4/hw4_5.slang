@@ -29,7 +29,49 @@ void detect_collision(uint tid : SV_DispatchThreadID,
     if (tid >= num_particles) {
         return;
     }
-    // TODO: HW 4.5. Your code below.
+    
+    float4 contact_plane = float4(0.0, 0.0, 0.0, 0.0);
+    if (inv_masses[tid] == 0.0)
+    {
+        contact_planes[tid] = contact_plane;
+        return;
+    }
+
+    float3 position = positions[tid];
+    float min_distance = contact_margin + collision_distance;
+
+    for (uint i = 0; i < num_planes; ++i)
+    {
+        float4 plane = planes[i];
+        float distance = dot(plane.xyz, position) - plane.w;
+        if (distance < min_distance)
+        {
+            min_distance = distance;
+            contact_plane = float4(plane.xyz, plane.w + collision_distance);
+        }
+    }
+
+    for (uint i = 0; i < num_spheres; ++i)
+    {
+        float4 sphere = spheres[i];
+        float3 delta = position - sphere.xyz;
+        float center_distance = length(delta);
+        float distance = center_distance - sphere.w;
+        if (distance < min_distance) {
+            min_distance = distance;
+
+            float3 normal = float3(0.0, 1.0, 0.0);
+            if (center_distance > 0.0)
+            {
+                normal = delta / center_distance;
+            }
+
+            float d = dot(normal, sphere.xyz) + sphere.w;
+            contact_plane = float4(normal, d + collision_distance);
+        }
+    }
+
+    contact_planes[tid] = contact_plane;
 }
 
 [shader("compute")]
@@ -50,7 +92,63 @@ void project_constraints(uint tid : SV_DispatchThreadID,
     if (tid >= num_particles) {
         return;
     }
-    // TODO: HW 4.5. Your code below.
+    
+    float3 position = positions_in[tid];
+    float inverse_mass = inv_masses[tid];
+    if (inverse_mass == 0.0)
+    {
+        positions_out[tid] = position;
+        return;
+    }
+
+    uint first_slot = row_ptr[tid];
+    uint end_slot = row_ptr[tid + 1];
+    uint neighbor_count = end_slot - first_slot;
+    float3 correction_sum = float3(0.0, 0.0, 0.0);
+
+    for (uint i = first_slot; i < end_slot; ++i)
+    {
+        uint neighbor = neighbors[i];
+        float3 delta = positions_in[neighbor] - position;
+        float distance = length(delta);
+
+        if (distance > 0.0) {
+            float rest_length = neighbor_rest[i];
+            float weight_scale = inverse_mass / (inverse_mass + inv_masses[neighbor]);
+            correction_sum += weight_scale * (distance - rest_length) * (delta / distance);
+        }
+    }
+
+    if (neighbor_count > 0)
+    {
+        position += correction_sum / float(neighbor_count);
+    }
+
+    float4 contact_plane = contact_planes[tid];
+    float3 normal = contact_plane.xyz;
+    if (any(normal != float3(0.0, 0.0, 0.0)))
+    {
+        float penetration = contact_plane.w - dot(normal, position);
+        if (penetration > 0.0)
+        {
+            position += penetration * normal;
+
+            float3 displacement = position - old_positions[tid];
+            float3 tangent = displacement - dot(displacement, normal) * normal;
+            float tangent_length = length(tangent);
+
+            if (tangent_length <= static_friction * penetration)
+            {
+                position -= tangent;
+            }
+            else if (tangent_length > 0.0)
+            {
+                position -= kinetic_friction * penetration * (tangent / tangent_length);
+            }
+        }
+    }
+
+    positions_out[tid] = position;
 }
 
 [shader("compute")]
@@ -65,5 +163,12 @@ void update_velocity(uint tid : SV_DispatchThreadID,
     if (tid >= num_particles) {
         return;
     }
-    // TODO: HW 4.5. Your code below.
+    
+    if (inv_masses[tid] == 0.0)
+    {
+        return;
+    }
+
+    float3 position = positions[tid];
+    velocities[tid] = (position - old_positions[tid]) / dt;
 }

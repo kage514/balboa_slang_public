@@ -1,0 +1,11 @@
+Cirno Fumo white mesh
+
+Original 3D scan: "東方 Project - Cirno Fumo (3D scan)" by Renafox
+https://sketchfab.com/3d-models/project-cirno-fumo-3d-scan-efd2a7f4dbf048c1a18438db7f86c4b9
+
+Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+
+This scene reuses the triangulated, simplified white mesh from the HW3
+mirror scene. HW4 recenters, scales, and rotates it for use as a static
+collider. The course viewer applies its default collision-mesh material.
